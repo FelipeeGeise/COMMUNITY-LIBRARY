@@ -4,11 +4,11 @@ async function createUserControlle(req, res) {
   const newUser = req.body;
 
   try {
-    const user = userServices.createUserService(newUser);
+    const user = await userServices.createUserService(newUser);
     res.status(201).send({ user });
-  } catch (err) {
-    return res.status(400).send(err.message);
+  } catch (e) {
+    res.status(400).send(e.message);
   }
 }
 
-export default {createUserControlle}
+export default { createUserControlle };
