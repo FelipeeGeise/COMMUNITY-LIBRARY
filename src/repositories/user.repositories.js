@@ -20,7 +20,7 @@ function createUserRepository(newUser) {
         VALUES (?, ?, ?, ?)
         `,
       [username, email, password, avatar],
-      (err) => {
+      function (err) {
         if (err) {
           reject(err);
         } else {
@@ -51,4 +51,97 @@ function findUserByEmailRepository(email) {
   });
 }
 
-export default { createUserRepository, findUserByEmailRepository };
+function findUserByIdRepository(id) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `
+    SELECT id, username, email, avatar
+    FROM users
+    WHERE id = ?
+    `,
+      [id],
+      (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      }
+    );
+  });
+}
+
+function findAllUserRepository() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `
+  SELECT id, username, email, avatar FROM users
+  `,
+      [],
+      (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      }
+    );
+  });
+}
+
+function updateUserRepository(id, user) {
+  return new Promise((resolve, reject) => {
+    const fields = ["username", "email", "password", "avatar"];
+    let query = "UPDATE users SET ";
+
+    const values = [];
+
+    fields.forEach((field) => {
+      if (user[field] !== undefined) {
+        query += `${field} = ?,`;
+        values.push(user[field]);
+      }
+    });
+
+    query = query.slice(0, -1);
+
+    query += "WHERE id = ?";
+    values.push(id);
+
+    db.run(query, values, function (err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ ...user, id });
+      }
+    });
+  });
+}
+
+async function deleteUserRepository(id) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `
+  DELETE  FROM users
+  WHERE id = ?
+  `,
+      [id],
+      (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ message: "User deleted successfully", id });
+        }
+      }
+    );
+  });
+}
+
+export default {
+  createUserRepository,
+  findUserByEmailRepository,
+  findUserByIdRepository,
+  findAllUserRepository,
+  updateUserRepository,
+  deleteUserRepository,
+};
